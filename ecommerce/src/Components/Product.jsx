@@ -18,13 +18,13 @@ const Product = () => {
         const getProduct = async () => {
             setLoading(true);
             try {
-                const response = await fetch(`http://localhost:3000/api/v1/product/products/${id}`);
+                const response = await fetch(`http://localhost:8000/store/store/products/${id}`);
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
                 const data = await response.json();
-                console.log(data.product.title); // Access the title after parsing
-                setProduct(data.product); // Store only the product object
+                console.log(data.title); // Access the title after parsing
+                setProduct(data); // Store the full product object
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -44,10 +44,10 @@ const Product = () => {
                     <img src={product.image} alt={product.title} height="400px" width="400px" />
                 </div>
                 <div className='col-md-6'>
-                    <h4 className='text-uppercase text-black-50'>{product.category}</h4>
+                    <h4 className='text-uppercase text-black-50'>{product.category.name}</h4> {/* Access category name */}
                     <h1 className='display-5'>{product.title}</h1>
                     <p className='lead fw-bolder'>
-                        Rating {product.rating?.rate || 'N/A'} <i className='fa fa-star'></i>
+                        Rating 4.5 <i className='fa fa-star'></i> {/* Hardcoded rating */}
                     </p>
                     <h3 className='display-6 fw-bold my-4'>${product.price}</h3>
                     <p className='lead'>{product.description}</p>
