@@ -60,6 +60,9 @@ from sqlalchemy.orm import Session
 from app.db.database import SessionLocal
 from app.models import product as models, category as category_models  # Ensure correct import for Category model
 from app.schemas import product as schemas
+from fastapi import UploadFile, File, Form
+import cloudinary.uploader
+from app.config import cloudinary_config  
 
 router = APIRouter(
     prefix="/store/products",
@@ -76,17 +79,39 @@ def get_db():
 
 # Create product
 @router.post("/", response_model=schemas.ProductOut)
-def create_product(product: schemas.ProductCreate, db: Session = Depends(get_db)):
-    # Create product
-    db_product = models.Product(**product.dict())
+def create_product(
+    title: str = Form(...),
+    price: float = Form(...),
+    description: str = Form(...),
+    category_id: int = Form(...),
+    image: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    print('Selected file:', image)
+
+    # Upload image to Cloudinary
+    upload_result = cloudinary.uploader.upload(image.file)
+    image_url = upload_result.get("secure_url")
+
+    # Save to DB
+    db_product = models.Product(
+        title=title,
+        price=price,
+        description=description,
+        category_id=category_id,
+        image=image_url,
+        # rate=4.0,
+        # count=100
+    )
     db.add(db_product)
     db.commit()
     db.refresh(db_product)
 
-    # Get category details
-    category = db.query(category_models.Category).filter(category_models.Category.id == db_product.category_id).first()
-    if category:
-        db_product.category = category  # Assign category to product
+    # Attach category
+    category = db.query(category_models.Category).filter(
+        category_models.Category.id == db_product.category_id
+    ).first()
+    db_product.category = category
 
     return db_product
 

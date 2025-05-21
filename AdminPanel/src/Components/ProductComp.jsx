@@ -38,34 +38,43 @@ const ProductComp = () => {
       getallCategories();
     },[])
   
-    const handleCreate = async (e) => {
+ const handleCreate = async (e) => {
   e.preventDefault();
 
+  // Basic validation
+  if (!name.trim()) return alert("Name is required");
+  if (!description.trim()) return alert("Description is required");
+  if (!price || isNaN(price) || parseFloat(price) <= 0) return alert("Enter a valid price");
+  if (!quantity || isNaN(quantity) || parseInt(quantity) <= 0) return alert("Enter a valid quantity");
+  if (!Category) return alert("Please select a category");
+  if (!shiping) return alert("Please select shipping option");
+  if (!photo) return alert("Please upload a product image");
+
   try {
-    const productPayload = {
-      title: name,
-      price: parseFloat(price),
-      description: description,
-      category_id: parseInt(Category),
-      image: "https://browntape.com/wp-content/uploads/2016/10/product-images.jpg" // Replace with your actual image handling if needed
-    };
+    const formData = new FormData();
+    formData.append("title", name);
+    formData.append("price", price);
+    formData.append("description", description);
+    formData.append("category_id", Category);
+    formData.append("image", photo);
 
     const { data } = await axios.post(
       'http://127.0.0.1:8000/store/store/products/',
-      productPayload,
+      formData,
       {
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'multipart/form-data'
         }
       }
     );
 
     console.log('Product created successfully:', data);
-    navigate('/'); // or any other route after creation
+    navigate('/');
   } catch (error) {
     console.error('Error creating product:', error.response?.data || error.message);
   }
 };
+
 
   
   return (
@@ -96,6 +105,7 @@ const ProductComp = () => {
                         accept='image/*'
                         onChange={(e)=>setPhoto(e.target.files[0])}
                         hidden
+                        required
                         />
                     </label>
                   </div>
@@ -109,7 +119,7 @@ const ProductComp = () => {
                   </div>
                  
                   <div className='mb-3'>
-                    <input type='text' value={name} onChange={(e)=>setName(e.target.value)} placeholder='Write a name' className='form-control' />
+                    <input type='text' value={name} onChange={(e)=>setName(e.target.value)} placeholder='Write a name' className='form-control'  required/>
                   </div>
                   <div className='mb-3'>
                   <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder='Write a description' className='form-control' rows='3' />
